@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Chill</title><link rel="icon" href="/assets/app-icon.png"><link rel="canonical" href="https://usechill.tech/privacy">
+<style>
+:root{--bg:#07080C;--text:#E8EAF0;--muted:#9AA0B4;--cyan:#00F2FF;--panel:rgba(255,255,255,0.045)}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:48px 24px 80px}
+h1{font-size:34px;line-height:1.15;margin:0 0 8px}h2{font-size:22px;margin:36px 0 10px}h3{font-size:17px;margin:24px 0 6px}
+p,li{color:#C9CDDA}a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
+code{background:var(--panel);padding:2px 6px;border-radius:6px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:32px;color:var(--muted);font-size:14px}.top img{width:28px;height:28px;border-radius:7px}
+footer{margin-top:56px;color:var(--muted);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}
+</style></head><body><main>
+<div class="top"><img src="/assets/app-icon.png" alt=""><a href="/">Chill</a> · <a href="/support">Support</a> · <a href="/privacy">Privacy</a></div>
+<h1>Privacy Policy</h1>
+<p><strong>Last updated: October 2026</strong></p>
+<p>Chill (the iPhone/iPad/Apple Watch app) and Chill Server (the companion Mac app) are built so that there is nothing for this policy to disclose beyond what's below — there is no Chill cloud, no account system, and no analytics.</p>
+<h2>What we collect</h2>
+<p><strong>Nothing.</strong> Neither app sends any data to us (the developer) or to any third party. There is no analytics SDK, no crash reporter, and no third-party service built into either app. You can verify this yourself: the source is public at <a href="https://usechill.tech">github.com/Jian130/ai-studio</a>.</p>
+<h2>What the apps actually do with data</h2>
+<ul>
+<li>The iPhone/iPad/Watch app connects <strong>only</strong> to the Mac you explicitly pair it with, over a direct, end-to-end encrypted connection (per-device keys; a relay, when one is needed to get through NAT, only ever forwards encrypted bytes and steps aside once a direct path is available). That Mac is yours. We never see this traffic, and it never passes through any server we operate.</li>
+<li>Your code, your agent transcripts, and your Claude Code / Codex API credentials stay on your own Mac. They are never uploaded to us, because there is nowhere for them to go — the app has no backend.</li>
+<li>Local preferences (things like whether approvals are shown, sound settings, which hub you last used) are stored only in the app's own local storage on your device, never transmitted anywhere.</li>
+</ul>
+<h2>In-app purchase</h2>
+<p>The one-time "Unlock Chill" purchase is processed entirely by Apple through StoreKit. We never see your payment information — Apple's own privacy policy covers that transaction, not this one.</p>
+<p>To unlock every Mac you pair without re-purchasing, your device signs a small proof-of-purchase claim (which product you bought and when) locally and sends it to a Mac you've paired with, which verifies it offline. This claim contains no personal information beyond the fact of the purchase, and it is never sent to us — only between your own devices.</p>
+<h2>Children's privacy</h2>
+<p>The app is a developer tool, not directed at children, and collects nothing from anyone regardless of age.</p>
+<h2>Changes to this policy</h2>
+<p>If this ever changes — for example, if a future version adds an optional cloud feature — this page will be updated first, and the change will be reflected in that version's release notes.</p>
+<h2>Contact</h2>
+<p>Questions: open an issue at <a href="https://github.com/Jian130/usechill.tech/issues">github.com/Jian130/ai-studio/issues</a>.</p>
+<footer><span>© 2026 Chill</span><a href="/">usechill.tech</a><a href="/support">Support</a><a href="/privacy">Privacy</a></footer>
+</main></body></html>
