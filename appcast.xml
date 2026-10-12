@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Chill Server</title>
+    <link>https://usechill.tech</link>
+    <description>Updates for Chill Server, the Mac app that runs your agents.</description>
+    <item>
+      <title>Chill Server 0.8.1</title>
+      <pubDate>Mon, 12 Oct 2026 11:02:38 GMT</pubDate>
+      <sparkle:version>51</sparkle:version>
+      <sparkle:shortVersionString>0.8.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Chill Server now updates itself: Check for updates… in the menu bar panel, plus an automatic daily check. This build is notarized by Apple, so it opens without the Gatekeeper warning.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.8.1/Chill-Server-0.8.1.dmg" type="application/octet-stream" sparkle:edSignature="z9E6IhuoyoZNFxV7a+K7Z4RkTGJ/GiFLqH7e5gLpSJfesgK1y8L08tPtzotQt8fKcgxKYdrMBZaXIgVU4m7ZBA==" length="212746363" />
+    </item>
+  </channel>
+</rss>

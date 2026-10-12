@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chill — the same Claude Code and Codex sessions on every device</title>
+<meta name="description" content="One Mac runs Claude Code and Codex. Every device you own opens the same sessions: start at the desk, continue on your phone, finish on the iPad. No duplicates, no interruptions, nothing leaves your Mac.">
+<meta property="og:title" content="Chill">
+<meta property="og:url" content="https://usechill.tech/">
+<link rel="canonical" href="https://usechill.tech/">
+<meta property="og:description" content="The same Claude Code and Codex sessions on every device. Leave the Mac, pick up the same chat on your phone, keep going.">
+<meta property="og:image" content="assets/app-icon.png">
+<link rel="icon" href="assets/app-icon.png">
+<style>
+  :root {
+    --navy: #2A2F3D; --yellow: #FFCA00; --orange: #FF6732; --cyan: #00F2FF;
+    --bg: #07080C; --bg2: #0C0E15;
+    --panel: rgba(255,255,255,0.045); --panel-hi: rgba(255,255,255,0.08);
+    --line: rgba(255,255,255,0.10); --line-hi: rgba(255,255,255,0.22);
+    --text: #F3F4F8; --muted: #9BA2B4; --faint: #656C80;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: var(--cyan); text-decoration: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ---------- ambient background: drifting aurora + faint circuit grid ---------- */
+  .fx { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); }
+  .orb-a { width: 620px; height: 620px; left: -160px; top: -140px; opacity: 0.30; background: radial-gradient(circle, var(--cyan), transparent 70%); animation: driftA 24s ease-in-out infinite; }
+  .orb-b { width: 680px; height: 680px; right: -200px; top: 60px; opacity: 0.22; background: radial-gradient(circle, var(--orange), transparent 70%); animation: driftB 28s ease-in-out infinite; }
+  .orb-c { width: 560px; height: 560px; left: 28%; bottom: -260px; opacity: 0.18; background: radial-gradient(circle, var(--yellow), transparent 70%); animation: driftC 32s ease-in-out infinite; }
+  .fx .grid { position: absolute; inset: -2px; background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 54px 54px; -webkit-mask-image: radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 80%); mask-image: radial-gradient(ellipse 75% 55% at 50% 0%, #000 35%, transparent 80%); }
+  @keyframes driftA { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(70px, 50px); } }
+  @keyframes driftB { 0%, 100% { transform: translate(0,0); } 50% { transform: translate(-60px, -40px); } }
+  @keyframes driftC { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px, -30px) scale(1.1); } }
+
+  header { position: sticky; top: 0; z-index: 20; backdrop-filter: saturate(160%) blur(16px); background: rgba(7,8,12,0.72); border-bottom: 1px solid var(--line); }
+  .nav { display: flex; align-items: center; gap: 14px; height: 62px; }
+  .nav img { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 0 0 1px var(--line); }
+  .nav .brand { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+  .nav nav { margin-left: auto; display: flex; align-items: center; gap: 26px; font-size: 14px; }
+  .nav nav a { color: var(--muted); transition: color .15s ease; }
+  .nav nav a:hover { color: var(--text); }
+  .nav .btn { padding: 9px 16px; font-size: 13px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px; font-weight: 600; font-size: 15px; border: 1px solid var(--line-hi); background: var(--panel); color: var(--text); transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease; }
+  .btn:hover { transform: translateY(-1px); border-color: var(--cyan); }
+  .btn.primary { background: linear-gradient(100deg, var(--cyan), #00b8c4); border-color: transparent; color: #04161a; box-shadow: 0 8px 30px rgba(0,242,255,0.25); }
+  .btn.primary:hover { box-shadow: 0 10px 38px rgba(0,242,255,0.4); }
+  .btn small { font-weight: 500; opacity: 0.7; }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 76px 0 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px 7px 10px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+  .badge .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 0 0 rgba(0,242,255,0.6); animation: pulsering 2s ease-out infinite; }
+  @keyframes pulsering { 0% { box-shadow: 0 0 0 0 rgba(0,242,255,0.55); } 70% { box-shadow: 0 0 0 8px rgba(0,242,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,242,255,0); } }
+  h1 { font-size: clamp(34px, 4.6vw, 52px); line-height: 1.08; letter-spacing: -0.025em; margin: 0 0 18px; }
+  h1 em { font-style: normal; background: linear-gradient(100deg, var(--cyan) 10%, var(--yellow) 45%, var(--orange) 80%); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 7s ease-in-out infinite; }
+  @keyframes shimmer { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+  .lead { font-size: 18px; color: var(--muted); margin: 0 0 30px; max-width: 480px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .hero-visual { position: relative; padding: 28px 14px; }
+  .orbit-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 0; }
+  .orbit-svg .link { fill: none; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 10; opacity: 0.6; animation: flow 1s linear infinite; }
+  .orbit-svg .link.a { stroke: var(--cyan); }
+  .orbit-svg .link.b { stroke: var(--orange); }
+  @keyframes flow { to { stroke-dashoffset: -24; } }
+  .chip { position: absolute; z-index: 2; display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 999px; background: rgba(13,15,22,0.85); border: 1px solid var(--line-hi); font-size: 12.5px; font-weight: 600; color: #E7E9F0; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.35); animation: floaty 4.5s ease-in-out infinite; }
+  .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .chip-mac { left: 28px; top: -16px; animation-delay: 0s; }
+  .chip-iphone { left: 28px; bottom: -16px; animation-delay: .6s; }
+  .chip-ipad { right: 28px; top: -16px; animation-delay: 1.1s; }
+  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+  .demo-card { position: relative; z-index: 1; background: linear-gradient(175deg, rgba(255,255,255,0.065), rgba(255,255,255,0.02)); border: 1px solid var(--line-hi); border-radius: 20px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.55); backdrop-filter: blur(22px); }
+  .demo-bar { display: flex; align-items: center; gap: 9px; padding: 13px 16px; border-bottom: 1px solid var(--line); }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-dot.r { background: #FF5F57; } .demo-dot.y { background: #FEBC2E; } .demo-dot.g { background: #28C840; }
+  .demo-title { margin-left: 6px; font-size: 12px; color: var(--muted); font-family: var(--mono); display: flex; align-items: center; gap: 7px; }
+  .demo-title .live { width: 6px; height: 6px; border-radius: 50%; background: #28C840; box-shadow: 0 0 0 0 rgba(40,200,64,0.6); animation: pulsering2 2s ease-out infinite; }
+  @keyframes pulsering2 { 0% { box-shadow: 0 0 0 0 rgba(40,200,64,0.55); } 70% { box-shadow: 0 0 0 6px rgba(40,200,64,0); } 100% { box-shadow: 0 0 0 0 rgba(40,200,64,0); } }
+  .demo-body { padding: 22px 22px 26px; font-family: var(--mono); font-size: 13.5px; min-height: 230px; }
+  .demo-line.cmd { color: var(--cyan); }
+  .demo-line.cmd::before { content: "❯ "; color: var(--faint); }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--cyan); margin-left: 2px; vertical-align: middle; animation: blink 0.9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .demo-think, .demo-diff, .demo-ok { opacity: 0; transition: opacity .5s ease, transform .5s ease; transform: translateY(4px); }
+  .demo-think.in, .demo-diff.in, .demo-ok.in { opacity: 1; transform: translateY(0); }
+  .demo-think { color: var(--faint); font-style: italic; margin-top: 14px; }
+  .demo-diff { margin-top: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .diff-rm { color: #FF8A7A; } .diff-rm::before { content: "− "; }
+  .diff-add { color: #71E0A6; } .diff-add::before { content: "+ "; }
+  .demo-ok { color: #71E0A6; font-weight: 600; margin-top: 12px; }
+  .toast { position: absolute; top: 14px; right: 14px; display: flex; align-items: center; gap: 10px; background: rgba(10,12,18,0.92); border: 1px solid var(--line-hi); border-radius: 13px; padding: 10px 14px; box-shadow: 0 14px 34px rgba(0,0,0,0.45); opacity: 0; transform: translateY(-10px) scale(0.96); transition: opacity .4s ease, transform .4s ease; z-index: 3; }
+  .toast.show { opacity: 1; transform: translateY(0) scale(1); }
+  .toast .ti { width: 26px; height: 26px; border-radius: 7px; background: var(--cyan); flex-shrink: 0; }
+  .toast strong { font-size: 12.5px; } .toast span { font-size: 11.5px; color: var(--muted); display: block; }
+
+  /* ---------- "wherever you end up" banner: home Mac <-> relaxed, working-away silhouette ---------- */
+  .away-frame { width: 100%; aspect-ratio: 2.5 / 1; border-radius: 22px; overflow: hidden; border: 1px solid var(--line-hi); box-shadow: 0 30px 80px rgba(0,0,0,0.5); background: var(--bg2); }
+  .away { width: 100%; height: 100%; display: block; }
+  .away .cap { font-family: var(--sans); font-size: 15px; fill: rgba(255,255,255,0.5); }
+  .away .aw-pill { fill: rgba(255,255,255,0.08); stroke: rgba(255,255,255,0.2); }
+  .away .aw-pill-solid { fill: rgba(16,18,26,0.96); }
+  .away .aw-pill-text { font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; fill: rgba(255,255,255,0.92); }
+  .away .mini-top { fill: #EEF0F3; } .away .mini-front { fill: #CDD1D8; } .away .mini-side { fill: #AEB3BD; } .away .mini-shadow { fill: #000; opacity: 0.35; }
+  .away .mini-led { fill: var(--cyan); transform-box: fill-box; transform-origin: 50% 50%; animation: ledpulse 2s ease-in-out infinite; }
+  .away .shelf { stroke: rgba(255,255,255,0.12); stroke-width: 1.5; }
+  .away .glow-cyan { fill: var(--cyan); opacity: 0.26; } .away .glow-warm { fill: var(--orange); opacity: 0.2; } .away .glow-yellow { fill: var(--yellow); opacity: 0.16; }
+  .away .chair { fill: rgba(255,214,166,0.16); }
+  .away .person { fill: url(#personGrad); }
+  .away .device-bezel { fill: #121419; } .away .device-screen { fill: url(#screenAway); }
+  .away .wave { fill: none; stroke: rgba(255,255,255,0.22); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 2 10; animation: flow 2.4s linear infinite; }
+  .away .link { fill: none; stroke: var(--cyan); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 2 11; opacity: 0.85; animation: flow 1s linear infinite; }
+  .away .bubble { transform-box: fill-box; transform-origin: 50% 100%; animation: bubble-pop 3.6s ease-in-out infinite; }
+  .away .float { transform-box: fill-box; transform-origin: 50% 50%; animation: bob 3s ease-in-out infinite; }
+  @keyframes ledpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes bubble-pop { 0%, 14% { opacity: 0; transform: scale(0.6) translateY(4px); } 24%, 70% { opacity: 1; transform: scale(1) translateY(0); } 82%, 100% { opacity: 0; transform: scale(0.6) translateY(4px); } }
+  @media (max-width: 640px) { .away-frame { aspect-ratio: 1.3 / 1; border-radius: 16px; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orb-a, .orb-b, .orb-c, .badge .pulse, .demo-title .live, h1 em, .orbit-svg .link, .chip, .cursor,
+    .away .mini-led, .away .link, .away .wave, .away .bubble, .away .float { animation: none !important; }
+    .away .link, .away .wave { stroke-dasharray: none; }
+  }
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding-top: 44px; }
+    .chip, .orbit-svg { display: none; }
+    .nav nav a:not(.btn) { display: none; }
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 54px 0; border-top: 1px solid var(--line); }
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  h2 { font-size: 28px; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 32px; font-size: 16.5px; max-width: 560px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .step, .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; transition: border-color .2s ease, transform .2s ease, background .2s ease; }
+  .step:hover, .card:hover { border-color: var(--line-hi); transform: translateY(-2px); background: var(--panel-hi); }
+  .step .n { display: inline-flex; width: 30px; height: 30px; border-radius: 10px; align-items: center; justify-content: center; font-weight: 700; color: #06110F; margin-bottom: 14px; }
+  .step:nth-child(1) .n { background: var(--yellow); } .step:nth-child(2) .n { background: var(--orange); } .step:nth-child(3) .n { background: var(--cyan); }
+  .step h3, .card h3 { margin: 0 0 6px; font-size: 16.5px; }
+  .step p, .card p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .card .tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; margin-bottom: 11px; color: #06110F; }
+  .tag.claude { background: var(--orange); } .tag.codex { background: var(--cyan); } .tag.term { background: var(--yellow); }
+  .tag.priv { background: var(--panel-hi); color: var(--text); border: 1px solid var(--line-hi); }
+
+  .gallery { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; align-items: start; }
+  .gallery figure { margin: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,0.4); transition: transform .3s ease, border-color .3s ease; }
+  .gallery figure:hover { transform: translateY(-4px); border-color: var(--line-hi); }
+  .gallery img { width: 100%; display: block; }
+
+  .privacy { background: linear-gradient(160deg, rgba(0,242,255,0.07), rgba(255,255,255,0.02)); border: 1px solid var(--line-hi); border-radius: 22px; padding: 38px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 34px; align-items: center; }
+  .privacy p { color: var(--muted); margin: 0 0 12px; }
+  .privacy ul { margin: 0; padding: 0; list-style: none; }
+  .privacy li { margin: 10px 0; padding-left: 26px; position: relative; }
+  .privacy li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--cyan); font-weight: 700; }
+
+  .dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  code { font-family: var(--mono); font-size: 12.5px; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 6px; }
+  footer { padding: 36px 0 48px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); display: flex; gap: 18px; flex-wrap: wrap; }
+  footer a { color: var(--muted); }
+
+  @media (max-width: 820px) {
+    .steps, .gallery, .privacy { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="fx" aria-hidden="true"><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="orb orb-c"></div><div class="grid"></div></div>
+
+<header><div class="wrap nav">
+  <img src="assets/app-icon.png" alt=""><span class="brand">Chill</span>
+  <nav><a href="#how">How it works</a><a href="#anywhere">Anywhere</a><a href="#features">Features</a><a href="#privacy">Privacy</a><a class="btn primary" href="#download">Get Chill</a></nav>
+</div></header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="badge"><span class="pulse"></span> Works with Claude Code &amp; Codex</div>
+      <h1>One Mac runs the agents.<br><em>Every device picks up the same session.</em></h1>
+      <p class="lead">Start a Claude Code or Codex session at your desk. Leave. Open the exact same chat on your iPhone or iPad and keep going, then sit back down at the Mac and it is all still there. No duplicate sessions, no re-explaining, no interruption.</p>
+      <div class="cta">
+        <a class="btn primary" href="#download">Get Chill</a>
+        <a class="btn" href="#how">See how it works <small>· 2 min</small></a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <svg class="orbit-svg" viewBox="0 0 640 460" preserveAspectRatio="none" aria-hidden="true">
+        <path id="lineMac" class="link a" d="M 70 90 C 170 70, 230 80, 300 110" />
+        <path id="lineIphone" class="link a" d="M 70 360 C 170 370, 230 350, 300 320" />
+        <path id="lineIpad" class="link b" d="M 575 50 C 480 70, 420 90, 360 110" />
+        <circle r="4" fill="var(--cyan)"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#lineMac" /></animateMotion></circle>
+        <circle r="4" fill="var(--cyan)"><animateMotion dur="3.1s" repeatCount="indefinite"><mpath href="#lineIphone" /></animateMotion></circle>
+        <circle r="4" fill="var(--orange)"><animateMotion dur="2.9s" repeatCount="indefinite"><mpath href="#lineIpad" /></animateMotion></circle>
+      </svg>
+      <div class="chip chip-mac"><span class="dot" style="background:var(--cyan)"></span>Mac mini · home</div>
+      <div class="chip chip-iphone"><span class="dot" style="background:var(--orange)"></span>iPhone · anywhere</div>
+      <div class="chip chip-ipad"><span class="dot" style="background:var(--yellow)"></span>iPad · anywhere</div>
+      <div class="demo-card">
+        <div class="demo-bar">
+          <span class="demo-dot r"></span><span class="demo-dot y"></span><span class="demo-dot g"></span>
+          <span class="demo-title"><span class="live"></span>jians-mac-mini — claude code</span>
+        </div>
+        <div class="demo-body">
+          <div class="demo-line cmd"><span id="demoCmd"></span><span class="cursor"></span></div>
+          <div class="demo-think" id="demoThink">Reading auth.ts, session.ts…</div>
+          <div class="demo-diff" id="demoDiff">
+            <div class="diff-rm">if (lock.tryAcquire()) {</div>
+            <div class="diff-add">if (await lock.acquireAsync()) {</div>
+          </div>
+          <div class="demo-ok" id="demoOk">✓ Applied — tests passing</div>
+        </div>
+        <div class="toast" id="demoToast"><div class="ti"></div><div><strong>Chill</strong><span>Reply ready — tap to view</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="anywhere" class="reveal">
+    <h2>Leave the desk. Keep the session.</h2>
+    <p class="sub">The agent keeps working on your Mac. Whatever you open next, phone, iPad or laptop, shows that same session mid-stream. You are steering the same work from wherever you are.</p>
+    <div class="away-frame">
+      <svg class="away" viewBox="0 0 1200 440" preserveAspectRatio="xMidYMid meet" role="img"
+           aria-label="A Mac mini stays on at home running the session, while someone relaxes in a deck chair by the sea and follows the same session on their phone.">
+        <defs>
+          <linearGradient id="bgAway" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#090B11" /><stop offset="1" stop-color="#151821" />
+          </linearGradient>
+          <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#FF6732" stop-opacity="0.22" /><stop offset="1" stop-color="#FF6732" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="miniFront" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#DADDE3" /><stop offset="1" stop-color="#B4B9C3" />
+          </linearGradient>
+          <linearGradient id="miniTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#F6F7F9" /><stop offset="1" stop-color="#D9DCE2" />
+          </linearGradient>
+          <linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#4A5370" /><stop offset="1" stop-color="#2A3042" />
+          </linearGradient>
+          <linearGradient id="trousers" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#2E3447" /><stop offset="1" stop-color="#1D212C" />
+          </linearGradient>
+          <linearGradient id="wood" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#E0A06A" /><stop offset="1" stop-color="#B9733F" />
+          </linearGradient>
+          <linearGradient id="screenAway" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1F2A33" /><stop offset="1" stop-color="#0F3A40" />
+          </linearGradient>
+          <radialGradient id="sunGrad" cx="50%" cy="45%" r="55%">
+            <stop offset="0" stop-color="#FFF1C8" /><stop offset="0.6" stop-color="#FFCE62" /><stop offset="1" stop-color="#FFA23A" />
+          </radialGradient>
+          <radialGradient id="sunHalo" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#FFC257" stop-opacity="0.55" /><stop offset="1" stop-color="#FFC257" stop-opacity="0" />
+          </radialGradient>
+          <radialGradient id="phoneGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#00F2FF" stop-opacity="0.45" /><stop offset="1" stop-color="#00F2FF" stop-opacity="0" />
+          </radialGradient>
+          <filter id="softAway" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="30" /></filter>
+          <filter id="shadowSoft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6" /></filter>
+          <linearGradient id="seaFade" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#fff" stop-opacity="0" /><stop offset="0.35" stop-color="#fff" stop-opacity="1" />
+          </linearGradient>
+          <mask id="seaMask"><rect x="520" y="340" width="680" height="100" fill="url(#seaFade)" /></mask>
+          <clipPath id="awayFrame"><rect width="1200" height="440" /></clipPath>
+        </defs>
+        <g clip-path="url(#awayFrame)">
+          <rect width="1200" height="440" fill="url(#bgAway)" />
+          <g filter="url(#softAway)">
+            <circle class="glow-cyan" cx="210" cy="250" r="175" />
+            <circle class="glow-warm" cx="960" cy="200" r="230" />
+            <circle class="glow-yellow" cx="1070" cy="130" r="120" />
+          </g>
+          <!-- stars -->
+          <g fill="#fff" opacity="0.5">
+            <circle cx="420" cy="52" r="1.4" /><circle cx="520" cy="96" r="1.1" /><circle cx="700" cy="40" r="1.6" />
+            <circle cx="860" cy="70" r="1.2" /><circle cx="380" cy="120" r="1" /><circle cx="640" cy="78" r="1" />
+            <circle cx="1150" cy="60" r="1.3" /><circle cx="960" cy="36" r="1" />
+          </g>
+
+          <!-- ===== right: sunset, sea, deck chair ===== -->
+          <circle cx="1060" cy="118" r="92" fill="url(#sunHalo)" />
+          <circle cx="1060" cy="118" r="38" fill="url(#sunGrad)" />
+          <g mask="url(#seaMask)">
+            <rect x="520" y="346" width="680" height="94" fill="url(#seaGrad)" />
+            <line x1="520" y1="346" x2="1200" y2="346" stroke="rgba(255,205,150,0.3)" stroke-width="1" />
+          </g>
+          <path class="wave" d="M 700 384 Q 780 372 860 384 T 1020 384 T 1180 384" />
+          <path class="wave" d="M 760 410 Q 840 398 920 410 T 1080 410 T 1200 410" opacity="0.55" />
+
+          <!-- parasol -->
+          <g transform="rotate(-9 905 346)">
+            <line x1="905" y1="346" x2="905" y2="150" stroke="rgba(255,255,255,0.35)" stroke-width="3" stroke-linecap="round" />
+            <path d="M 811 152 A 94 94 0 0 1 999 152 Z" fill="#FF6732" opacity="0.85" />
+            <path d="M 811 152 A 94 94 0 0 1 999 152 Z" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" />
+            <path d="M 905 58 L 858 152 M 905 58 L 905 152 M 905 58 L 952 152" stroke="rgba(0,0,0,0.22)" stroke-width="2.5" />
+            <path d="M 811 152 Q 858 142 905 152 Q 952 142 999 152" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="2.5" />
+          </g>
+
+          <!-- chair shadow -->
+          <ellipse cx="960" cy="352" rx="150" ry="8" fill="#000" opacity="0.4" filter="url(#shadowSoft)" />
+          <!-- deck chair: backrest, seat, legs -->
+          <path d="M 884 304 L 826 210" stroke="url(#wood)" stroke-width="18" stroke-linecap="round" />
+          <path d="M 884 304 L 1076 304" stroke="url(#wood)" stroke-width="18" stroke-linecap="round" />
+          <path d="M 910 312 L 898 346 M 1050 312 L 1062 346" stroke="#B9733F" stroke-width="7" stroke-linecap="round" />
+          <path d="M 1076 304 L 1092 346" stroke="#B9733F" stroke-width="7" stroke-linecap="round" />
+          <!-- person reclining -->
+          <g class="float">
+            <path d="M 862 236 L 908 292" stroke="url(#shirt)" stroke-width="42" stroke-linecap="round" />
+            <path d="M 908 292 L 1046 290" stroke="url(#trousers)" stroke-width="30" stroke-linecap="round" />
+            <circle cx="1058" cy="292" r="13" fill="#1D212C" />
+            <circle cx="836" cy="208" r="23" fill="#2B3142" />
+            <path d="M 820 196 Q 836 180 858 198" fill="none" stroke="#161922" stroke-width="7" stroke-linecap="round" />
+            <path d="M 884 258 L 926 248" stroke="#3D4560" stroke-width="15" stroke-linecap="round" />
+            <!-- phone, lit -->
+            <circle cx="940" cy="236" r="46" fill="url(#phoneGlow)" />
+            <g transform="rotate(-14 940 236)">
+              <rect class="device-bezel" x="922" y="206" width="36" height="60" rx="7" />
+              <rect class="device-screen" x="925.5" y="210.5" width="29" height="51" rx="4.5" />
+              <rect x="930" y="222" width="17" height="4" rx="2" fill="#FFCA00" />
+              <rect x="930" y="230" width="12" height="4" rx="2" fill="#FF6732" />
+              <rect x="930" y="238" width="15" height="4" rx="2" fill="#00F2FF" />
+              <rect x="930" y="250" width="20" height="4" rx="2" fill="rgba(255,255,255,0.35)" />
+            </g>
+          </g>
+          <g class="bubble" transform="translate(1030 206)">
+            <rect fill="var(--cyan)" x="-40" y="-16" width="80" height="26" rx="13" />
+            <text x="0" y="2" text-anchor="middle" font-size="12" font-weight="700" fill="#06252A" font-family="var(--sans)">✓ Allowed</text>
+          </g>
+          <text class="cap" x="960" y="430" text-anchor="middle">Working from wherever you end up</text>
+
+          <!-- ===== left: home, the Mac that holds the session ===== -->
+          <rect class="aw-pill" x="92" y="86" width="180" height="38" rx="19" />
+          <circle cx="116" cy="105" r="5.5" fill="var(--cyan)" />
+          <text class="aw-pill-text" x="130" y="109">Mac mini · home</text>
+          <!-- the running session card -->
+          <g class="float">
+            <rect x="112" y="148" width="176" height="70" rx="16" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.16)" />
+            <rect x="132" y="165" width="88" height="9" rx="4.5" fill="#FFCA00" />
+            <rect x="132" y="181" width="62" height="9" rx="4.5" fill="#FF6732" />
+            <rect x="132" y="197" width="76" height="9" rx="4.5" fill="#00F2FF" />
+            <circle class="mini-led" cx="206" cy="185.5" r="4.5" fill="#fff" />
+            <circle cx="262" cy="166" r="5" fill="#28C840" />
+          </g>
+          <!-- Mac mini -->
+          <ellipse cx="190" cy="340" rx="120" ry="10" fill="#000" opacity="0.45" filter="url(#shadowSoft)" />
+          <ellipse cx="190" cy="334" rx="90" ry="6" fill="var(--cyan)" opacity="0.18" filter="url(#shadowSoft)" />
+          <polygon class="mini-side" points="245,294 245,330 279,310 279,274" />
+          <polygon points="95,294 245,294 279,274 129,274" fill="url(#miniTop)" />
+          <rect x="95" y="294" width="150" height="36" rx="7" fill="url(#miniFront)" />
+          <rect x="95" y="294" width="150" height="3" fill="rgba(255,255,255,0.6)" />
+          <circle class="mini-led" cx="226" cy="313" r="3.2" />
+          <line class="shelf" x1="40" y1="340" x2="330" y2="340" />
+          <text class="cap" x="190" y="408" text-anchor="middle">Always on, at home</text>
+
+          <!-- ===== the connection: same session, both ways ===== -->
+          <path id="awayLink" class="link" d="M 296 186 C 480 104, 710 160, 835 176 C 880 184, 912 196, 930 210" />
+          <circle r="5" fill="var(--cyan)">
+            <animateMotion dur="3s" repeatCount="indefinite" rotate="auto"><mpath href="#awayLink" /></animateMotion>
+          </circle>
+          <circle r="4" fill="var(--orange)">
+            <animateMotion dur="4.2s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#awayLink" /></animateMotion>
+          </circle>
+          <rect class="aw-pill aw-pill-solid" x="520" y="118" width="152" height="34" rx="17" />
+          <text class="aw-pill-text" x="596" y="140" text-anchor="middle">direct · encrypted</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section id="how" class="reveal">
+    <h2>How it works</h2>
+    <p class="sub">One Mac does the work and holds every session. Every other device is a window onto the same ones.</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><h3>Install the server on your Mac</h3><p>A menu-bar app that keeps Claude Code and Codex sessions alive, even when the lid is closed. Your API keys and logins never leave that Mac.</p></div>
+      <div class="step"><span class="n">2</span><h3>Pair your devices</h3><p>Scan a code once. Each device gets its own key; the connection is end-to-end encrypted and goes straight to your Mac, with a relay only when a direct path is impossible.</p></div>
+      <div class="step"><span class="n">3</span><h3>Pick up on any device</h3><p>Open the session you were in, right where it is. Answer the agent's questions, approve edits and commands, switch models, start new work in any project folder, or drop into a real terminal.</p></div>
+    </div>
+  </section>
+
+  <section id="features" class="reveal">
+    <h2>Same sessions, every device. Everything the desktop tools do.</h2>
+    <p class="sub">Built for people who already live in Claude Code and Codex.</p>
+    <div class="grid">
+      <div class="card"><span class="tag claude">Claude Code</span><h3>One session, every screen</h3><p>Thinking, tool calls, diffs and plans rendered properly. The session you left on the Mac is the one you open on the phone, live or from history, never a copy.</p></div>
+      <div class="card"><span class="tag codex">Codex</span><h3>Same app, same flow</h3><p>Approval policy and sandbox per chat, model and effort switching, questions answered in place.</p></div>
+      <div class="card"><span class="tag term">Terminal</span><h3>A real terminal, not a preview</h3><p>Open any tmux window as a live terminal with a proper keyboard bar. It is the same terminal on every device, and it survives your phone sleeping.</p></div>
+      <div class="card"><span class="tag priv">Approvals</span><h3>Say yes from the couch</h3><p>Commands and file changes wait for you with the diff attached. Allow once, allow for the session, or flip auto-allow for a chat you trust.</p></div>
+      <div class="card"><span class="tag priv">Push</span><h3>Know when it's done</h3><p>A reply ready or an approval needed pings your phone, with a deep link straight into that chat.</p></div>
+      <div class="card"><span class="tag priv">Organised</span><h3>Projects, archive, search</h3><p>Sessions grouped by agent and project folder, archive what you're done with, instant reopen from local cache.</p></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="gallery">
+      <figure><img src="assets/screenshot-ipad-chat.png" alt="Chill on iPad: sidebar with projects and a Claude Code chat"></figure>
+      <figure><img src="assets/screenshot-iphone-chat.png" alt="Chill on iPhone: a chat with an approval card"></figure>
+      <figure><img src="assets/screenshot-iphone-dark.png" alt="Chill on iPhone in dark mode"></figure>
+    </div>
+  </section>
+
+  <section id="privacy" class="reveal">
+    <div class="privacy">
+      <div>
+        <h2>Private by design</h2>
+        <p>There is no Chill cloud in the middle. The agents, the code, the transcripts and the API keys all stay on your Mac. The only thing we host is a notification relay, which forwards one line of alert text to Apple and keeps nothing.</p>
+        <p>Traffic between your devices is end-to-end encrypted with per-device keys. Relays, when needed, only forward ciphertext and step aside as soon as a direct connection is up.</p>
+      </div>
+      <ul>
+        <li>No account to create</li>
+        <li>No transcript ever uploaded to us</li>
+        <li>Open protocol, open gateway source</li>
+        <li>Works with your existing Claude and Codex logins</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="download" class="reveal">
+    <h2>Download</h2>
+    <p class="sub">Two parts: the server for the Mac that runs and keeps your sessions, and the app for every device you pick up.</p>
+    <div class="dl">
+      <div class="card"><h3>Chill Server <span class="tag priv">macOS 15+</span></h3><p>Menu-bar app with everything bundled. Needs the <code>claude</code> and/or <code>codex</code> CLI installed and signed in. Click “Pair a device…” and scan the code.</p><p style="margin-top:12px"><a class="btn primary" href="https://github.com/Jian130/usechill.tech/releases/latest">Download for Mac (.dmg)</a></p></div>
+      <div class="card"><h3>Chill <span class="tag priv">iPhone · iPad · Mac</span></h3><p>The client. Pair it with your Mac by scanning a code.</p><p style="margin-top:12px"><a class="btn" href="#">TestFlight — coming soon</a></p></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© 2026 Chill · <a href="https://usechill.tech">usechill.tech</a></span>
+  <a href="/support">Support</a>
+  <a href="/privacy">Privacy</a>
+  <span>Claude Code is a product of Anthropic. Codex is a product of OpenAI. Chill is not affiliated with either.</span>
+</footer>
+
+<script>
+  // Scroll reveal
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var targets = document.querySelectorAll('.reveal');
+  if (reduced) {
+    targets.forEach(function (el) { el.classList.add('in'); });
+  } else if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    targets.forEach(function (el) { io.observe(el); });
+  } else {
+    targets.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // Hero demo: typed command -> thinking -> diff -> done -> push toast, looping
+  (function () {
+    var cmdEl = document.getElementById('demoCmd');
+    var thinkEl = document.getElementById('demoThink');
+    var diffEl = document.getElementById('demoDiff');
+    var okEl = document.getElementById('demoOk');
+    var toastEl = document.getElementById('demoToast');
+    if (!cmdEl) return;
+    var command = 'fix the race condition in auth.ts';
+
+    function setState(step) {
+      cmdEl.textContent = step >= 0 ? command.slice(0, step) : '';
+      thinkEl.classList.toggle('in', step >= 100);
+      diffEl.classList.toggle('in', step >= 101);
+      okEl.classList.toggle('in', step >= 102);
+      toastEl.classList.toggle('show', step >= 103);
+    }
+
+    if (reduced) { setState(command.length); setState(103); return; }
+
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    async function loop() {
+      while (true) {
+        setState(0);
+        for (var i = 1; i <= command.length; i++) { setState(i); await wait(32); }
+        await wait(450);
+        setState(100);
+        await wait(900);
+        setState(101);
+        await wait(850);
+        setState(102);
+        await wait(600);
+        setState(103);
+        await wait(2600);
+        toastEl.classList.remove('show');
+        await wait(1800);
+      }
+    }
+    loop();
+  })();
+</script>
+</body>
+</html>
