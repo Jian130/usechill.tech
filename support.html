@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><script>if(["usechill.tech", "www.usechill.tech"].includes(location.hostname))location.replace("https://usechill.app"+location.pathname+location.search+location.hash)</script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support — Chill</title><link rel="icon" href="/assets/app-icon.png"><link rel="canonical" href="https://usechill.app/support">
+<link rel="preload" href="/assets/fonts/Inter-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Inter";font-weight:300;font-display:swap;src:url("/assets/fonts/Inter-Light.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("/assets/fonts/Inter-Medium.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("/assets/fonts/Inter-SemiBold.woff2") format("woff2")}
+:root{--navy:#2A2F3D;--text:#2A2F3D;--body:#3E4557;--muted:#5C6378;--link:#007C85;--line:rgba(42,47,61,.10);--panel:rgba(42,47,61,.06)}
+body{margin:0;background:#fff;color:var(--text);font:500 16px/1.65 "Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.bloom{position:fixed;left:-260px;top:-220px;width:760px;height:640px;z-index:0;pointer-events:none;mix-blend-mode:multiply}
+.bloom svg{width:100%;height:100%;overflow:visible}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:48px 24px 80px}
+h1{font-size:40px;line-height:1.1;letter-spacing:-.02em;font-weight:300;margin:0 0 10px}h2{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:40px 0 10px}h3{font-size:17px;font-weight:600;margin:24px 0 6px}
+p,li{color:var(--body)}a{color:var(--link);text-decoration:none;text-decoration-color:#00F2FF}a:hover{text-decoration:underline;text-decoration-thickness:2px}
+code{background:var(--panel);padding:2px 6px;border-radius:6px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:32px;color:var(--muted);font-size:14px}.top img{width:28px;height:28px;border-radius:7px;box-shadow:0 0 0 1px var(--line)}.top a{color:var(--text);font-weight:600}
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}footer a{color:var(--text)}
+</style></head><body>
+<div class="bloom" aria-hidden="true"><svg viewBox="0 0 760 640"><defs><filter id="ink" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="90" xChannelSelector="R" yChannelSelector="G" result="w"/><feGaussianBlur in="w" stdDeviation="28"/></filter></defs><g filter="url(#ink)"><ellipse cx="380" cy="300" rx="250" ry="180" fill="#FFCA00" opacity=".34"/><ellipse cx="470" cy="360" rx="180" ry="140" fill="#FF6732" opacity=".24" transform="rotate(-18 470 360)"/></g></svg></div>
+<main>
+<div class="top"><img src="/assets/app-icon.png" alt=""><a href="/">Chill</a> · <a href="/support">Support</a> · <a href="/privacy">Privacy</a></div>
+<h1>Support</h1>
+<p>Website: <a href="https://usechill.app">https://usechill.app</a></p>
+<h2>Getting help</h2>
+<ul>
+<li><strong>Bug or question?</strong> Open an issue: <a href="https://github.com/Jian130/usechill.tech/issues">github.com/Jian130/ai-studio/issues</a></li>
+<li><strong>Setup help</strong> (pairing, Chill Server install, the <code>claude</code>/<code>codex</code> CLI prerequisites): see the <a href="/">README</a> and the in-app pairing flow — scanning the QR code from Chill Server is the whole setup, no accounts or extra configuration needed.</li>
+</ul>
+<h2>Common issues</h2>
+<p><strong>"Not running" / can't pair</strong> — Chill Server needs to be running on the Mac first (menu bar icon). Open it, click "Pair a device…", and scan the code with the phone's camera.</p>
+<p><strong>Claude / Codex shows as not found</strong> — Chill Server detects whether the <code>claude</code> and <code>codex</code> CLIs are installed and signed in on that Mac; install and sign into whichever one you plan to use from a Terminal on that Mac, then reopen Chill Server.</p>
+<p><strong>Unlock didn't carry over to a Mac</strong> — the purchase syncs to a Mac automatically the next time your phone connects to it. If it hasn't shown up, try reconnecting (pull to refresh, or reopen the chat list) once your phone has a normal internet connection.</p>
+<h2>Privacy</h2>
+<p>See <a href="/privacy">PRIVACY.md</a>.</p>
+<footer><span>© 2026 Chill</span><a href="/">usechill.app</a><a href="/support">Support</a><a href="/privacy">Privacy</a></footer>
+</main></body></html>
