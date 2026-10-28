@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Chill Server</title>
+    <link>https://usechill.app</link>
+    <description>Updates for Chill Server, the Mac app that runs your agents.</description>
+    <item>
+      <title>Chill Server 0.9.4</title>
+      <pubDate>Wed, 28 Oct 2026 04:40:06 GMT</pubDate>
+      <sparkle:version>112</sparkle:version>
+      <sparkle:shortVersionString>0.9.4</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>New Task routes better: it never suggests a project root folder, and it knows what each project is about from your recent requests there.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.4/Chill-Server-0.9.4.dmg" type="application/octet-stream" sparkle:edSignature="36WRAmdfZie2//Gc3e6wMLf3bIQi11wOstVyUg/NnPL570BoEmbdfEFbSBUJCLfL38/fO0Db+RpR4VPTKzxAAA==" length="214304862" />
+    </item>
+    <item>
+      <title>Chill Server 0.9.3</title>
+      <pubDate>Tue, 27 Oct 2026 17:04:19 GMT</pubDate>
+      <sparkle:version>108</sparkle:version>
+      <sparkle:shortVersionString>0.9.3</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>New Task: one box for any task. Describe it, and Chill picks the session, project, agent and model for it, using a small routing model you choose in Settings (a Claude model, any OpenAI-compatible API, or TypeSafe Jev).</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.3/Chill-Server-0.9.3.dmg" type="application/octet-stream" sparkle:edSignature="f6qoHTwaB+dcdWNTkSi3XrJht0bJMRK1JRPpS7f0kJHFFug1O7IbkVkvCZe1iJ9Sb1eEolI6XuRqLun9xatqAQ==" length="210247507" />
+    </item>
+    <item>
+      <title>Chill Server 0.9.2</title>
+      <pubDate>Tue, 27 Oct 2026 14:36:39 GMT</pubDate>
+      <sparkle:version>102</sparkle:version>
+      <sparkle:shortVersionString>0.9.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Claude chats now keep their whole history after Chill Server restarts, including everything before a compaction, and background-task notifications and compaction summaries show as compact rows instead of raw text.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.2/Chill-Server-0.9.2.dmg" type="application/octet-stream" sparkle:edSignature="Sqt3pYX3PSFtL7FgIYYHOcIbzvRfXJjdCXv9g6ZagYQMluQSUmt56y1ZSJKQ0ZmX7xUdnvsCCo+qwmjc3RmZAg==" length="212489890" />
+    </item>
+    <item>
+      <title>Chill Server 0.9.1</title>
+      <pubDate>Sun, 25 Oct 2026 12:35:51 GMT</pubDate>
+      <sparkle:version>100</sparkle:version>
+      <sparkle:shortVersionString>0.9.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Chill Server no longer restarts in a loop when codex app-server cannot start (an older codex-cli, or one that cannot run under launchd): the gateway stays up, Claude sessions keep working, and the reason, with the codex version, is shown in this panel and sent to the app.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.1/Chill-Server-0.9.1.dmg" type="application/octet-stream" sparkle:edSignature="xljfwk+6Txy1GrgH8pq3F8W8rU/pDgvvZjIKmdIacOeedoTUB6bGhnOJW+BBop8UuLhFnEBw2h0sswvmtPShBQ==" length="212412403" />
+    </item>
+    <item>
+      <title>Chill Server 0.9.0</title>
+      <pubDate>Tue, 20 Oct 2026 14:05:56 GMT</pubDate>
+      <sparkle:version>86</sparkle:version>
+      <sparkle:shortVersionString>0.9.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>New project folders from New Chat (the Mac creates the folder under one of your project roots), markdown tables in chat, re-scanning a pairing QR code refreshes the paired Mac instead of adding a duplicate, messages no longer cut short, optional self-hosted iroh relay.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.0/Chill-Server-0.9.0.dmg" type="application/octet-stream" sparkle:edSignature="fDNcaJwl2mAUylfhv8oJ6hzkSsj2mXe0LrZ/0uUg3G8VEdvraYfzqtA89El8rzbc5l8d+S/z3+uGaywXjCytAg==" length="214359798" />
+    </item>
+    <item>
+      <title>Chill Server 0.9.0</title>
+      <pubDate>Tue, 13 Oct 2026 17:34:17 GMT</pubDate>
+      <sparkle:version>67</sparkle:version>
+      <sparkle:shortVersionString>0.9.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Chill Server 0.9.0. Approvals and questions now stay in the conversation on every device and survive a server restart; native push notifications for iPhone and iPad (needs approval, reply ready); a paired device can open the Mac&#x27;s local dev servers (Open localhost:PORT chips, Open preview…); a Codex turn that was cut off says so instead of looking busy; the free-session trial is counted on the device, the server only displays it; the status window shows versions and how each device is connected.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.9.0/Chill-Server-0.9.0.dmg" type="application/octet-stream" sparkle:edSignature="8U8/Tiiv+j/4WkxRbnOPHtJny0XRmHwNeC9E8+J1d7aKNNaHhu7WfvOqTKL6pelsyW6XXbEkCXklizvydlmwCA==" length="213461598" />
+    </item>
+    <item>
+      <title>Chill Server 0.8.1</title>
+      <pubDate>Mon, 12 Oct 2026 11:02:38 GMT</pubDate>
+      <sparkle:version>51</sparkle:version>
+      <sparkle:shortVersionString>0.8.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[<p>Chill Server now updates itself: Check for updates… in the menu bar panel, plus an automatic daily check. This build is notarized by Apple, so it opens without the Gatekeeper warning.</p>]]></description>
+      <enclosure url="https://github.com/Jian130/usechill.tech/releases/download/v0.8.1/Chill-Server-0.8.1.dmg" type="application/octet-stream" sparkle:edSignature="z9E6IhuoyoZNFxV7a+K7Z4RkTGJ/GiFLqH7e5gLpSJfesgK1y8L08tPtzotQt8fKcgxKYdrMBZaXIgVU4m7ZBA==" length="212746363" />
+    </item>
+  </channel>
+</rss>
