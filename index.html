@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head><script>if(["usechill.tech", "www.usechill.tech"].includes(location.hostname))location.replace("https://usechill.app"+location.pathname+location.search+location.hash)</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chill — the same Claude Code and Codex sessions on every device</title>
+<meta name="description" content="One Mac runs the agents. Every device picks up the same session. Leave the Mac, open the exact same chat on your phone, keep going.">
+<meta property="og:title" content="Chill">
+<meta property="og:url" content="https://usechill.app/">
+<link rel="canonical" href="https://usechill.app/">
+<meta property="og:description" content="The same Claude Code and Codex sessions on every device. Leave the Mac, pick up the same chat on your phone, keep going.">
+<meta property="og:image" content="assets/app-icon.png">
+<link rel="icon" href="assets/app-icon.png">
+<link rel="preload" href="assets/fonts/Inter-Light.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/Inter-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  /* Inter, self-hosted (SIL OFL, see assets/fonts/LICENSE-Inter.txt). Never a third-party font request. */
+  @font-face { font-family: "Inter"; font-weight: 300; font-style: normal; font-display: swap; src: url("assets/fonts/Inter-Light.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 500; font-style: normal; font-display: swap; src: url("assets/fonts/Inter-Medium.woff2") format("woff2"); }
+  @font-face { font-family: "Inter"; font-weight: 600; font-style: normal; font-display: swap; src: url("assets/fonts/Inter-SemiBold.woff2") format("woff2"); }
+
+  :root {
+    /* The four brand hues are fixed: they are the app icon. */
+    --navy: #2A2F3D; --yellow: #FFCA00; --orange: #FF6732; --cyan: #00F2FF;
+    /* Derived shades that pass contrast as TEXT on white. The raw yellow (1.5:1) and cyan (1.4:1) never
+       become text or thin strokes; they are fills, blooms, underlines and dots only. */
+    --orange-ink: #D94E1F; --cyan-ink: #007C85; --yellow-ink: #8A6D00;
+    --text: var(--navy); --body: #3E4557; --muted: #5C6378; --faint: #8A90A3;
+    --line: rgba(42,47,61,0.10); --line-hi: rgba(42,47,61,0.18);
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --settle: cubic-bezier(.2,.9,.25,1.05);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; position: relative; background: #fff; color: var(--text); font-family: var(--sans); font-weight: 500; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  a { color: var(--cyan-ink); text-decoration: none; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
+
+  /* ---------- watercolor blooms ----------
+     Three ink-blooms, each a static SVG (feTurbulence -> feDisplacementMap -> blur) so WebKit rasterises the
+     filter ONCE and caches it. All motion is on the wrapper, transform only; the GPU just moves a texture.
+     A filter on an element that itself animates re-rasterises every frame and stutters on iPhone. */
+  .blooms { position: absolute; left: 0; right: 0; top: 0; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+  .bloom { position: absolute; will-change: transform; }
+  .bloom svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  /* the hero bloom: one painted diagonal, top-left to bottom-right, the reference's composition */
+  .bloom-hero { width: 1180px; height: 900px; left: 50%; margin-left: -340px; top: -60px; animation: driftA 32s ease-in-out infinite; }
+  /* the echo sits under the privacy card -- the one place the page goes bold with colour -- not behind a screenshot */
+  .bloom-echo { width: 1000px; height: 740px; right: -300px; top: 2560px; animation: driftB 40s ease-in-out infinite; }
+  @keyframes driftA { 0%, 100% { transform: translate3d(0,0,0) rotate(0deg); } 50% { transform: translate3d(28px, 20px, 0) rotate(1.2deg); } }
+  @keyframes driftB { 0%, 100% { transform: translate3d(0,0,0); } 50% { transform: translate3d(-30px, -22px, 0); } }
+
+  /* ---------- light glass ----------
+     Alpha stays .5-.6 (above .8 the bloom vanishes and this is a grey box). The hairline is WHITE, a light
+     catching the edge, never grey. saturate() is what makes the colour behind read as pigment, not mist. */
+  .glass { background: rgba(255,255,255,0.55); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+           border: 1px solid rgba(255,255,255,0.75);
+           /* the white hairline is invisible where the page behind is also white, so a faint navy ring (the
+              0 0 0 1px) keeps the edge legible there without ever reading as a grey box */
+           box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 1px rgba(42,47,61,0.07), 0 20px 50px -20px rgba(42,47,61,0.18); }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: rgba(255,255,255,0.88); } }
+
+  /* ---------- header ---------- */
+  header { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,0.72); -webkit-backdrop-filter: blur(16px) saturate(1.3); backdrop-filter: blur(16px) saturate(1.3); border-bottom: 1px solid var(--line); }
+  .nav { display: flex; align-items: center; gap: 12px; height: 64px; }
+  .nav img { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 0 0 1px rgba(42,47,61,0.12); }
+  .brand { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+  .nav nav { margin-left: auto; display: flex; gap: 22px; align-items: center; font-size: 14px; font-weight: 500; }
+  .nav nav a { color: var(--muted); position: relative; }
+  .nav nav a:not(.btn)::after { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 3px; border-radius: 2px; background: var(--yellow); transform: scaleX(0); transform-origin: left; transition: transform .22s var(--settle); }
+  .nav nav a:not(.btn):hover { color: var(--text); } .nav nav a:not(.btn):hover::after { transform: scaleX(1); }
+
+  /* ---------- buttons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 999px; font-weight: 600; font-size: 14.5px; color: var(--text); border: 1px solid var(--line-hi); background: rgba(255,255,255,0.7); transition: transform .18s ease-out, box-shadow .18s ease-out, border-color .18s; position: relative; overflow: hidden; }
+  .btn::after { content: ""; position: absolute; left: 20px; right: 20px; bottom: 7px; height: 2px; border-radius: 2px; background: var(--yellow); transform: scaleX(0); transform-origin: left; transition: transform .22s var(--settle); }
+  .btn:hover { transform: translateY(-2px) scale(1.02); border-color: rgba(42,47,61,0.3); } .btn:hover::after { transform: scaleX(1); }
+  .btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn.primary:hover { box-shadow: 0 10px 30px -10px rgba(255,103,50,0.55); }
+  .btn.primary::after { background: var(--cyan); }
+  .btn small { font-weight: 500; opacity: .6; }
+  .nav .btn { padding: 9px 16px; font-size: 13.5px; }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 56px; align-items: start; padding: 96px 0 80px; }
+  .hero-visual { padding-top: 24px; }
+  h1 { font-size: clamp(48px, 7vw, 88px); line-height: 1.02; letter-spacing: -0.03em; font-weight: 300; margin: 0 0 24px; }
+  h1 strong { font-weight: 300; position: relative; white-space: nowrap; }
+  /* a thick brand underline is how yellow is allowed near text: it is a fill, not a glyph */
+  h1 strong::after { content: ""; position: absolute; left: -0.02em; right: -0.02em; bottom: 0.08em; height: 0.16em; background: var(--yellow); z-index: -1; border-radius: 3px; transform: scaleX(0); transform-origin: left; animation: underline 1s var(--settle) .7s forwards; }
+  @keyframes underline { to { transform: scaleX(1); } }
+  .lead { font-size: 19px; line-height: 1.55; color: var(--body); max-width: 520px; margin: 0 0 32px; }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .hero-visual { position: relative; }
+
+  .demo-card { position: relative; z-index: 2; border-radius: 22px; overflow: visible; margin: 0; animation: cardIn .9s var(--settle) .15s both; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(28px) rotate(-1.5deg); } to { opacity: 1; transform: none; } }
+  .demo-bar { display: flex; align-items: center; gap: 7px; padding: 12px 14px; border-bottom: 1px solid var(--line); border-radius: 22px 22px 0 0; }
+  .demo-dot { width: 11px; height: 11px; border-radius: 50%; } .demo-dot.r { background: #FF5F57; } .demo-dot.y { background: #FEBC2E; } .demo-dot.g { background: #28C840; }
+  .demo-title { margin-left: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .demo-title .live { width: 6px; height: 6px; border-radius: 50%; background: #28C840; box-shadow: 0 0 0 0 rgba(40,200,64,0.6); animation: pulsering2 2s ease-out infinite; }
+  @keyframes pulsering2 { 0% { box-shadow: 0 0 0 0 rgba(40,200,64,0.55); } 70% { box-shadow: 0 0 0 6px rgba(40,200,64,0); } 100% { box-shadow: 0 0 0 0 rgba(40,200,64,0); } }
+  .demo-body { padding: 18px 18px 20px; font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--body); min-height: 212px; }
+  .demo-line.cmd { color: var(--text); font-weight: 600; } .demo-line.cmd::before { content: "› "; color: var(--orange-ink); }
+  .cursor { display: inline-block; width: 7px; height: 15px; background: var(--orange); margin-left: 2px; vertical-align: middle; animation: blink 0.9s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .demo-think { margin-top: 10px; color: var(--muted); font-style: italic; opacity: 0; transform: translateY(4px); transition: opacity .35s, transform .35s; }
+  .demo-diff { margin-top: 12px; border-radius: 10px; overflow: hidden; opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; border: 1px solid var(--line); }
+  .demo-diff div { padding: 5px 12px; }
+  .diff-rm { background: #FBD5CC; color: #8A2B10; text-decoration: line-through; text-decoration-color: rgba(138,43,16,0.4); }
+  .diff-add { background: #C5E8D3; color: #0F5A30; }
+  .diff-rm::before { content: "− "; } .diff-add::before { content: "+ "; }
+  .demo-ok { margin-top: 12px; color: #0F7A3C; font-weight: 600; opacity: 0; transition: opacity .35s; }
+  .demo-think.in, .demo-diff.in { opacity: 1; transform: none; } .demo-ok.in { opacity: 1; }
+
+  /* ---------- sections ---------- */
+  section { padding: 76px 0; }
+  h2 { font-size: clamp(32px, 4vw, 44px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0 0 12px; }
+  .sub { font-size: 17px; color: var(--body); margin: 0 0 36px; }
+  h3 { font-size: 17px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  p { margin: 0; }
+  .card, .step { border-radius: 20px; padding: 24px; transition: transform .2s ease-out, border-color .2s; }
+  .card:hover, .step:hover { transform: translateY(-3px); border-color: rgba(255,255,255,1); }
+  .card p, .step p { font-size: 14.5px; color: var(--body); }
+
+
+  /* ---------- Clay-style slabs ---------- */
+  .slab { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; border-radius: 32px; padding: 64px; margin: 24px 0; }
+  .slab-yellow { background: #FFF6D6; } .slab-orange { background: #FFE9DF; } .slab-cyan { background: #DFFBFD; } .slab-navy { background: #2A2F3D; color: #fff; } .slab-white { background: rgba(255,255,255,.6); border: 1px solid var(--line); }
+  .slab-navy .btn { background: #fff; color: var(--navy); border-color: #fff; } .slab-navy .btn.primary { background: var(--cyan); color: var(--navy); border-color: var(--cyan); }
+  .eyebrow { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; background: rgba(42,47,61,.08); margin-bottom: 18px; }
+  .slab-navy .eyebrow { background: rgba(255,255,255,.14); }
+  .slab h2 { margin: 0 0 14px; }
+  h2 em { font-style: normal; font-weight: 300; }
+  .slab-yellow h2 em { color: var(--yellow-ink); } .slab-orange h2 em { color: var(--orange-ink); } .slab-cyan h2 em { color: var(--cyan-ink); } .slab-navy h2 em { color: var(--cyan); } .slab-white h2 em { color: var(--cyan-ink); }
+  .slab p { font-size: 17px; color: var(--body); max-width: 400px; margin: 0 0 24px; } .slab-navy p { color: rgba(255,255,255,.78); }
+  .slab-art { display: grid; place-items: center; min-height: 300px; }
+  .center { text-align: center; } .center.sub { max-width: 520px; margin: 0 auto 36px; }
+  section.how, section.download, section.devices-section { padding: 72px 0; }
+  section.how h2, section.devices-section h2, section.download h2 { margin-bottom: 36px; }
+  section.devices-section h2 em { color: var(--orange-ink); }
+
+  /* ---------- live mockups (the product, moving) ---------- */
+  .mock { width: 100%; max-width: 440px; }
+  .mini-card { background: #fff; border-radius: 16px; box-shadow: 0 16px 40px -16px rgba(42,47,61,.3); overflow: hidden; }
+  .mini-bar { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); } .mini-bar span { width: 9px; height: 9px; border-radius: 50%; background: #E3E6EC; } .mini-bar i { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 6px; }
+  .mini-body { padding: 14px; display: grid; gap: 9px; } .line { height: 9px; border-radius: 5px; background: #E9EBF0; } .w60 { width: 60%; } .w80 { width: 80%; } .w40 { width: 40%; } .line.live { background: var(--cyan); animation: livepulse 1.6s ease-in-out infinite; }
+  @keyframes livepulse { 50% { opacity: .45; } }
+  .handoff { display: grid; grid-template-columns: 1fr 70px 1fr; align-items: center; gap: 0; max-width: 480px; }
+  .handoff .mini-card.phone { transform: translateY(22px); }
+  .chat { padding: 12px; display: grid; gap: 8px; } .msg { font-size: 11.5px; line-height: 1.4; padding: 7px 10px; border-radius: 12px; max-width: 92%; } .msg.me { background: rgba(0,242,255,.22); justify-self: end; border-bottom-right-radius: 4px; } .msg.ai { background: #F1F2F5; border-bottom-left-radius: 4px; } .msg code { font-size: 10.5px; padding: 1px 4px; }
+  .handoff-link { width: 100%; height: 160px; overflow: visible; } .handoff-link path { fill: none; stroke: var(--orange); stroke-width: 2; stroke-dasharray: 2 9; opacity: .6; animation: flow 1s linear infinite; }
+  @keyframes flow { to { stroke-dashoffset: -22; } }
+
+  .approval { background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 16px 40px -16px rgba(42,47,61,.3); position: relative; animation: apLoop 6s ease-in-out infinite; }
+  .ap-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; } .ap-badge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; background: var(--orange); color: #fff; padding: 4px 9px; border-radius: 999px; } .ap-cmd { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .ap-diff { border-radius: 10px; overflow: hidden; font-family: var(--mono); font-size: 12.5px; border: 1px solid var(--line); } .ap-diff div { padding: 6px 12px; }
+  .ap-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; } .ap-btn { padding: 9px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; border: 1px solid var(--line-hi); } .ap-allow { background: var(--navy); color: #fff; border-color: var(--navy); animation: apPress 6s ease-in-out infinite; }
+  .ap-done { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(255,255,255,.96); border-radius: 18px; color: #0F7A3C; font-weight: 600; font-size: 16px; opacity: 0; animation: apDone 6s ease-in-out infinite; }
+  @keyframes apPress { 0%, 55% { transform: scale(1); } 60% { transform: scale(.94); } 65%, 100% { transform: scale(1); } }
+  @keyframes apDone { 0%, 64% { opacity: 0; } 70%, 90% { opacity: 1; } 96%, 100% { opacity: 0; } }
+  @keyframes apLoop { 0%, 100% { transform: translateY(0); } }
+
+  .lockscreen { background: linear-gradient(160deg, #2A2F3D, #0F1420); border-radius: 28px; padding: 28px 18px; min-height: 300px; width: 290px; box-shadow: 0 20px 50px -18px rgba(42,47,61,.5); }
+  .ls-time { color: #fff; font-size: 44px; font-weight: 300; text-align: center; letter-spacing: -.02em; margin-bottom: 22px; }
+  .notif { display: flex; gap: 10px; align-items: center; background: rgba(255,255,255,.92); border-radius: 16px; padding: 11px 12px; margin-bottom: 10px; opacity: 0; transform: translateY(-14px); }
+  .notif .ti { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(180deg, var(--yellow) 0 33%, var(--orange) 33% 66%, var(--cyan) 66%); flex-shrink: 0; } .notif strong { font-size: 13px; display: block; } .notif span { font-size: 12px; color: var(--muted); }
+  .n1 { animation: notifIn 7s ease-out infinite; } .n2 { animation: notifIn 7s ease-out 2.2s infinite; }
+  @keyframes notifIn { 0% { opacity: 0; transform: translateY(-14px); } 8%, 70% { opacity: 1; transform: none; } 80%, 100% { opacity: 0; transform: translateY(-14px); } }
+
+  .term { background: #0F1420; border-radius: 16px; padding: 18px; font-family: var(--mono); font-size: 13.5px; color: #D6DAE3; line-height: 1.7; width: 100%; box-shadow: 0 20px 50px -18px rgba(0,0,0,.6); }
+  .term .prompt { color: var(--cyan); } .term .typed::before { content: "$ "; color: var(--orange); } .term .typed::after { content: ""; display: inline-block; width: 8px; height: 15px; background: var(--cyan); vertical-align: middle; margin-left: 2px; animation: blink .9s steps(1) infinite; }
+  .term .out { color: #5EDB8A; } .term .dim { color: #6B7280; }
+
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; width: 100%; max-width: 380px; }
+  .checks li { position: relative; padding: 14px 16px 14px 46px; background: #fff; border-radius: 14px; font-weight: 600; font-size: 15px; box-shadow: 0 10px 30px -14px rgba(42,47,61,.25); }
+  .checks li::before { content: "✓"; position: absolute; left: 14px; top: 13px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--orange); color: #fff; font-size: 12px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .step .n { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; font-weight: 600; font-size: 14px; color: var(--navy); margin-bottom: 14px; }
+  .step:nth-child(1) .n { background: var(--yellow); } .step:nth-child(2) .n { background: var(--orange); } .step:nth-child(3) .n { background: var(--cyan); }
+  .dl { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 760px; margin: 0 auto; }
+  .dl .card { display: grid; gap: 10px; justify-items: start; } .dl .card p { margin: 0 0 4px; } .dl small { color: var(--muted); font-size: 12.5px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; color: var(--navy); } .tag.priv { background: rgba(42,47,61,0.08); }
+  code { font-family: var(--mono); font-size: 0.92em; background: rgba(42,47,61,0.07); padding: 2px 6px; border-radius: 6px; }
+
+  /* device frames (kept) */
+  .devices { position: relative; margin-top: 56px; height: 620px; }
+  .device { position: absolute; background: #1B1E27; border-radius: 34px; padding: 12px; box-shadow: 0 40px 80px -30px rgba(42,47,61,0.45), 0 0 0 1px rgba(255,255,255,0.08) inset; }
+  .device .screen { border-radius: 24px; overflow: hidden; background: #fff; height: 100%; }
+  .device img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .devices .tablet { left: 0; top: 0; width: 560px; height: 620px; padding: 20px; border-radius: 30px; } .devices .tablet .screen { border-radius: 14px; }
+  .devices .phone { width: 250px; height: 540px; border-radius: 40px; padding: 10px; } .devices .phone .screen { border-radius: 32px; }
+  .devices .phone-a { left: 520px; top: 70px; transform: rotate(-4deg); z-index: 2; } .devices .phone-b { left: 800px; top: 10px; transform: rotate(5deg); z-index: 1; }
+  .reveal.in .phone-a { animation: settleA 1s var(--settle) .2s both; } .reveal.in .phone-b { animation: settleB 1s var(--settle) .35s both; }
+  @keyframes settleA { from { transform: translateY(30px) rotate(-9deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
+  @keyframes settleB { from { transform: translateY(30px) rotate(10deg); opacity: 0; } to { transform: rotate(5deg); opacity: 1; } }
+
+  /* ---------- Clay's stagger: children of a [data-stagger] list reveal one after another ---------- */
+  [data-stagger] > * { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--settle), transform .6s var(--settle); }
+  .reveal.in [data-stagger] > * { opacity: 1; transform: none; }
+  .reveal.in [data-stagger] > :nth-child(1) { transition-delay: .05s; } .reveal.in [data-stagger] > :nth-child(2) { transition-delay: .17s; } .reveal.in [data-stagger] > :nth-child(3) { transition-delay: .29s; } .reveal.in [data-stagger] > :nth-child(4) { transition-delay: .41s; }
+  /* Clay's text entrance: copy slides up out of a clip */
+  .slab-copy > * { clip-path: inset(0 0 100% 0); transform: translateY(18px); transition: clip-path .7s var(--settle), transform .7s var(--settle); }
+  .reveal.in .slab-copy > * { clip-path: inset(0 0 -10% 0); transform: none; }
+  .reveal.in .slab-copy > :nth-child(2) { transition-delay: .08s; } .reveal.in .slab-copy > :nth-child(3) { transition-delay: .16s; } .reveal.in .slab-copy > :nth-child(4) { transition-delay: .24s; }
+
+  footer { padding: 36px 28px 60px; color: var(--muted); font-size: 13px; display: flex; gap: 18px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 20px; }
+  footer a { color: var(--text); }
+
+  /* ---------- reveal: entries "land" ---------- */
+  .reveal { opacity: 0; transform: translateY(22px) scale(.985); transition: opacity .7s var(--settle), transform .7s var(--settle); }
+  .reveal.in { opacity: 1; transform: none; }
+
+  @media (max-width: 960px) {
+    .hero { grid-template-columns: 1fr; gap: 32px; padding: 56px 0 40px; }
+    .hero-visual { min-height: 420px; }
+    .steps, .grid, .dl, .stats { grid-template-columns: 1fr 1fr; }
+    .privacy { grid-template-columns: 1fr; padding: 32px; }
+    .slab { grid-template-columns: 1fr; padding: 40px 32px; } .slab-art { min-height: 0; margin-top: 8px; }
+    .devices { height: 560px; } .devices .tablet { width: 460px; height: 520px; } .devices .phone { width: 210px; height: 450px; } .devices .phone-a { left: 400px; top: 90px; } .devices .phone-b { left: 600px; top: 40px; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 18px; }
+    .nav nav a:not(.btn) { display: none; }
+    .steps, .dl { grid-template-columns: 1fr; } .slab { border-radius: 22px; padding: 32px 22px; margin: 14px 0; }
+    /* keep the two handoff cards side by side on a phone, so the session visibly travels between them */
+    .handoff { grid-template-columns: 1fr 40px 1fr; max-width: 100%; } .handoff .msg { font-size: 10px; } .handoff .mini-card.phone { transform: translateY(14px); }
+    .devices { height: auto; display: grid; gap: 18px; } .device { position: static; transform: none !important; width: auto; height: auto; } .devices .tablet { aspect-ratio: 3/4; } .devices .phone { aspect-ratio: 9/19; max-width: 260px; margin: 0 auto; }
+    .reveal.in .phone-a, .reveal.in .phone-b { animation: none; }
+    .bloom-hero { width: 820px; height: 640px; margin-left: -420px; top: -20px; } .bloom-echo { width: 680px; height: 520px; right: -240px; top: 5600px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .reveal, .demo-card, [data-stagger] > *, .slab-copy > * { opacity: 1; transform: none; clip-path: none; }
+    .notif { opacity: 1; transform: none; } .ap-done { opacity: 0; }
+    h1 strong::after { transform: scaleX(1); }
+  }
+</style>
+</head>
+<body>
+
+<!-- One painted ink-bloom behind the hero, a quiet echo further down. Static SVGs -- rendered once, cached --
+     moved only by a transform on the wrapper (a filter on an element that itself animates re-rasterises every frame
+     and stutters on iPhone). Torn edges from feTurbulence+feDisplacementMap with NO blur: blur made fog, not ink.
+     Layered translucent washes multiply where they overlap, so colours pool darker at the seams like real pigment. -->
+<div class="blooms" aria-hidden="true">
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <filter id="tear" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="4" seed="11" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="150" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="tear2" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="4" seed="4" result="n" />
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="110" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <!-- wet-interior mottling, shown only inside the shape -->
+      <filter id="mottle" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="21" result="m" />
+        <feColorMatrix in="m" type="saturate" values="0" result="mg" />
+        <feComponentTransfer in="mg"><feFuncA type="table" tableValues="0 0.35" /></feComponentTransfer>
+        <feComposite in2="SourceGraphic" operator="in" result="mi" />
+        <feBlend in="SourceGraphic" in2="mi" mode="multiply" />
+      </filter>
+      <radialGradient id="gY" cx="45%" cy="45%" r="60%"><stop offset="0" stop-color="#FFCA00" stop-opacity=".95" /><stop offset="1" stop-color="#FFCA00" stop-opacity=".45" /></radialGradient>
+      <radialGradient id="gO" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#FF6732" stop-opacity=".95" /><stop offset="1" stop-color="#FF6732" stop-opacity=".4" /></radialGradient>
+      <radialGradient id="gC" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#00F2FF" stop-opacity=".9" /><stop offset="1" stop-color="#00F2FF" stop-opacity=".35" /></radialGradient>
+      <radialGradient id="gN" cx="50%" cy="50%" r="55%"><stop offset="0" stop-color="#2A2F3D" stop-opacity=".75" /><stop offset="1" stop-color="#2A2F3D" stop-opacity="0" /></radialGradient>
+    </defs>
+  </svg>
+  <div class="bloom bloom-hero"><svg viewBox="0 0 1000 760">
+    <g style="mix-blend-mode:multiply">
+      <g filter="url(#mottle)">
+        <g filter="url(#tear)"><ellipse cx="300" cy="230" rx="230" ry="150" fill="url(#gY)" transform="rotate(-32 300 230)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="260" cy="200" rx="150" ry="110" fill="url(#gY)" transform="rotate(-20 260 200)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="390" cy="300" rx="170" ry="110" fill="#FF9E3D" fill-opacity=".45" transform="rotate(-32 390 300)" /></g>
+        <g filter="url(#tear)"><ellipse cx="470" cy="360" rx="230" ry="150" fill="url(#gO)" transform="rotate(-32 470 360)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="500" cy="380" rx="150" ry="110" fill="url(#gO)" transform="rotate(-45 500 380)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="580" cy="440" rx="110" ry="80" fill="url(#gN)" transform="rotate(-32 580 440)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="600" cy="460" rx="160" ry="100" fill="#6FB8B0" fill-opacity=".5" transform="rotate(-32 600 460)" /></g>
+        <g filter="url(#tear)"><ellipse cx="680" cy="510" rx="230" ry="150" fill="url(#gC)" transform="rotate(-32 680 510)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="720" cy="540" rx="150" ry="110" fill="url(#gC)" transform="rotate(-25 720 540)" /></g>
+      </g>
+      <!-- veins: smooth drawn curves. Running them through the tear filter shatters hairlines into crackle. -->
+      <g fill="none" stroke="#2A2F3D" stroke-linecap="round" stroke-opacity=".32">
+        <path stroke-width="1.2" d="M 300 170 C 340 230, 380 250, 420 310 C 450 350, 500 370, 540 410 C 580 450, 620 470, 660 520 C 690 560, 710 590, 720 620" />
+        <path stroke-width=".8" d="M 420 310 C 400 340, 370 360, 340 400" />
+        <path stroke-width=".8" d="M 540 410 C 560 380, 600 370, 640 360" />
+        <path stroke-width=".7" d="M 480 370 C 500 400, 490 440, 470 470" />
+        <path stroke-width=".9" d="M 620 480 C 650 460, 690 450, 730 470" />
+        <path stroke-width=".6" d="M 250 240 C 280 280, 320 290, 350 330" />
+      </g>
+      <g fill="#FF6732" fill-opacity=".7"><circle cx="160" cy="330" r="4" /><circle cx="120" cy="300" r="2.5" /><circle cx="190" cy="370" r="2" /><circle cx="640" cy="280" r="3" /><circle cx="690" cy="250" r="2" /></g>
+      <g fill="#00F2FF" fill-opacity=".7"><circle cx="820" cy="620" r="4" /><circle cx="860" cy="590" r="2.5" /><circle cx="790" cy="660" r="2" /><circle cx="880" cy="650" r="3" /></g>
+      <g fill="#FFCA00" fill-opacity=".8"><circle cx="110" cy="150" r="3.5" /><circle cx="140" cy="110" r="2" /><circle cx="90" cy="200" r="2.5" /></g>
+    </g>
+  </svg></div>
+  <!-- a smaller, paler echo behind the features/privacy area so the lower page is not bare white -->
+  <div class="bloom bloom-echo"><svg viewBox="0 0 1000 760">
+    <g style="mix-blend-mode:multiply" opacity=".55">
+      <g filter="url(#mottle)">
+        <g filter="url(#tear)"><ellipse cx="420" cy="330" rx="230" ry="150" fill="url(#gY)" transform="rotate(20 420 330)" /></g>
+        <g filter="url(#tear2)"><ellipse cx="560" cy="420" rx="170" ry="110" fill="#FF9E3D" fill-opacity=".4" transform="rotate(20 560 420)" /></g>
+        <g filter="url(#tear)"><ellipse cx="640" cy="470" rx="200" ry="130" fill="url(#gO)" transform="rotate(20 640 470)" /></g>
+      </g>
+    </g>
+  </svg></div>
+</div>
+
+<header><div class="wrap nav">
+  <img src="assets/app-icon.png" alt=""><span class="brand">Chill</span>
+  <nav><a href="#how">How it works</a><a href="#anywhere">Anywhere</a><a href="#features">Features</a><a href="#privacy">Privacy</a><a class="btn primary" href="#download">Get Chill</a></nav>
+</div></header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="hero-copy">
+      <h1>Same sessions,<br><strong>every device.</strong></h1>
+      <p class="lead">One Mac runs Claude Code and Codex. Leave your desk. The same chat opens on your phone.</p>
+      <div class="cta">
+        <a class="btn primary" href="#download">Get Chill</a>
+        <a class="btn" href="#how">See how it works <small>· 2 min</small></a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="demo-card glass">
+        <div class="demo-bar">
+          <span class="demo-dot r"></span><span class="demo-dot y"></span><span class="demo-dot g"></span>
+          <span class="demo-title"><span class="live"></span>mac-mini — claude code</span>
+        </div>
+        <div class="demo-body">
+          <div class="demo-line cmd"><span id="demoCmd"></span><span class="cursor"></span></div>
+          <div class="demo-think" id="demoThink">Reading auth.ts, session.ts…</div>
+          <div class="demo-diff" id="demoDiff">
+            <div class="diff-rm">if (lock.tryAcquire()) {</div>
+            <div class="diff-add">if (await lock.acquireAsync()) {</div>
+          </div>
+          <div class="demo-ok" id="demoOk">✓ Applied — tests passing</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clay's rhythm: one idea per slab. Tinted full-width card, eyebrow, two-line headline (second line in
+       colour), one or two short sentences, buttons -- and the right half is the product itself, moving.
+       Copy is held to Clay's density (median ~5 words a paragraph, nothing over ~29). -->
+
+  <section class="slab slab-yellow reveal" id="anywhere">
+    <div class="slab-copy">
+      <span class="eyebrow">Same session</span>
+      <h2>Leave the desk.<br><em>Keep the session.</em></h2>
+      <p>The agent keeps working on your Mac. Your phone opens that same chat, mid-stream.</p>
+      <div class="cta"><a class="btn primary" href="#download">Get Chill</a><a class="btn" href="#how">How it works</a></div>
+    </div>
+    <div class="slab-art">
+      <!-- the handoff: a Mac card and a phone card showing the SAME message, with the session travelling between them -->
+      <div class="mock handoff">
+        <div class="mini-card mac"><div class="mini-bar"><span></span><span></span><span></span><i>mac-mini</i></div><div class="chat"><div class="msg me">Fix the flaky auth test</div><div class="msg ai">Found it: a race in <code>login.ts</code>. Patched and tests pass.</div></div></div>
+        <svg class="handoff-link" viewBox="0 0 120 200" aria-hidden="true"><path id="hl" d="M 10 60 C 70 50, 50 150, 110 140" /><circle r="6" fill="#fff"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#hl" /></animateMotion></circle><circle r="4" fill="var(--orange)"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#hl" /></animateMotion></circle></svg>
+        <div class="mini-card phone"><div class="mini-bar"><i>iPhone · same chat</i></div><div class="chat"><div class="msg me">Fix the flaky auth test</div><div class="msg ai">Found it: a race in <code>login.ts</code>. Patched and tests pass.</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slab slab-orange reveal" id="approvals">
+    <div class="slab-copy">
+      <span class="eyebrow">Approvals</span>
+      <h2>Say yes<br><em>from the couch.</em></h2>
+      <p>Commands and edits wait for you, diff attached. Allow once, or for the whole session.</p>
+      <div class="cta"><a class="btn primary" href="#download">Get Chill</a></div>
+    </div>
+    <div class="slab-art">
+      <!-- an approval card that gets accepted on a loop -->
+      <div class="mock approval">
+        <div class="ap-head"><span class="ap-badge">Needs approval</span><span class="ap-cmd">npm test</span></div>
+        <div class="ap-diff"><div class="diff-rm">if (lock.tryAcquire()) {</div><div class="diff-add">if (await lock.acquireAsync()) {</div></div>
+        <div class="ap-actions"><span class="ap-btn">Deny</span><span class="ap-btn ap-allow">Allow <b>✓</b></span></div>
+        <div class="ap-done">✓ Allowed · tests passing</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slab slab-cyan reveal" id="push">
+    <div class="slab-copy">
+      <span class="eyebrow">Push</span>
+      <h2>Know<br><em>when it's done.</em></h2>
+      <p>A reply ready or an approval needed pings your phone. Tap it, you're in that chat.</p>
+      <div class="cta"><a class="btn primary" href="#download">Get Chill</a></div>
+    </div>
+    <div class="slab-art">
+      <!-- a lock screen with notifications sliding in -->
+      <div class="mock lockscreen">
+        <div class="ls-time">9:41</div>
+        <div class="notif n1"><div class="ti"></div><div><strong>Chill</strong><span>Reply ready · Fix refreshToken 401</span></div></div>
+        <div class="notif n2"><div class="ti"></div><div><strong>Chill</strong><span>Needs approval · npm test</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slab slab-navy reveal" id="terminal">
+    <div class="slab-copy">
+      <span class="eyebrow">Terminal</span>
+      <h2>A real terminal.<br><em>Not a preview.</em></h2>
+      <p>Any tmux window, live, with a proper keyboard. It survives your phone sleeping.</p>
+      <div class="cta"><a class="btn primary" href="#download">Get Chill</a></div>
+    </div>
+    <div class="slab-art">
+      <div class="mock term">
+        <div class="term-line"><span class="prompt">dev@mac-mini</span> ~/Projects/api %</div>
+        <div class="term-line typed" id="termTyped"></div>
+        <div class="term-line out">✓ 48 tests passed <span class="dim">(2.1s)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how reveal" id="how">
+    <h2 class="center">Two apps. <em>One Mac.</em></h2>
+    <div class="steps" data-stagger>
+      <div class="step glass"><span class="n">1</span><h3>Chill Server on your Mac</h3><p>Keeps every session alive.</p></div>
+      <div class="step glass"><span class="n">2</span><h3>Scan once to pair</h3><p>Encrypted, device to device.</p></div>
+      <div class="step glass"><span class="n">3</span><h3>Pick up anywhere</h3><p>Same session, every screen.</p></div>
+    </div>
+  </section>
+
+  <section class="devices-section reveal" id="features">
+    <h2 class="center">Everything the desktop tools do.<br><em>On every device.</em></h2>
+    <div class="devices">
+      <div class="device tablet"><div class="screen"><img src="assets/screenshot-ipad-chat.png" alt="Chill on iPad: the project sidebar beside a Claude Code chat with tool calls and a diff"></div></div>
+      <div class="device phone phone-a"><div class="screen"><img src="assets/screenshot-iphone-chat.png" alt="Chill on iPhone: a Claude Code session fixing a bug, with the edit diff"></div></div>
+      <div class="device phone phone-b"><div class="screen"><img src="assets/screenshot-iphone-codex.png" alt="Chill on iPhone: a Codex session upgrading a Dockerfile"></div></div>
+    </div>
+  </section>
+
+  <section class="slab slab-white reveal" id="privacy">
+    <div class="slab-copy">
+      <span class="eyebrow">Private by design</span>
+      <h2>No cloud<br><em>in the middle.</em></h2>
+      <p>Your code, transcripts and keys stay on your Mac. Nothing of yours is uploaded to us.</p>
+    </div>
+    <div class="slab-art">
+      <ul class="checks" data-stagger>
+        <li>No account to create</li>
+        <li>No transcript ever uploaded</li>
+        <li>End-to-end encrypted, per-device keys</li>
+        <li>Open protocol, open gateway source</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="download reveal" id="download">
+    <h2 class="center">Get Chill.</h2>
+    <p class="center sub">Chill Server on the Mac that runs your agents. Chill on everything else.</p>
+    <div class="dl" data-stagger>
+      <div class="card glass"><span class="tag priv">Mac · server</span><h3>Chill Server</h3><p>Menu-bar app. Needs <code>claude</code> or <code>codex</code> signed in.</p><a class="btn primary" href="https://github.com/Jian130/usechill.tech/releases/latest">Download .dmg</a><small>macOS 15+, Apple silicon</small></div>
+      <div class="card glass"><span class="tag priv">Every device</span><h3>Chill</h3><p>The app you actually use.</p><a class="btn primary" href="https://github.com/Jian130/usechill.tech/releases/latest">Download for Mac</a><a class="btn" href="https://testflight.apple.com/join/Zf4fg1Zk">iPhone &amp; iPad · TestFlight</a><small>App Store once approved</small></div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <span>© 2026 Chill · <a href="https://usechill.app">usechill.app</a></span>
+  <a href="/support">Support</a>
+  <a href="/privacy">Privacy</a>
+  <span>Claude Code is a product of Anthropic. Codex is a product of OpenAI. Chill is not affiliated with either.</span>
+</footer>
+
+<script>
+  // Scroll reveal
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var targets = document.querySelectorAll('.reveal');
+  if (reduced) {
+    targets.forEach(function (el) { el.classList.add('in'); });
+  } else if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    targets.forEach(function (el) { io.observe(el); });
+  } else {
+    targets.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // Hero demo: typed command -> thinking -> diff -> done -> push toast, looping
+  (function () {
+    var cmdEl = document.getElementById('demoCmd');
+    var thinkEl = document.getElementById('demoThink');
+    var diffEl = document.getElementById('demoDiff');
+    var okEl = document.getElementById('demoOk');
+    var toastEl = document.getElementById('demoToast');
+    if (!cmdEl) return;
+    var command = 'fix the race condition in auth.ts';
+
+    function setState(step) {
+      cmdEl.textContent = step >= 0 ? command.slice(0, step) : '';
+      thinkEl.classList.toggle('in', step >= 100);
+      diffEl.classList.toggle('in', step >= 101);
+      okEl.classList.toggle('in', step >= 102);
+      if (toastEl) toastEl.classList.toggle('show', step >= 103);
+    }
+
+    if (reduced) { setState(command.length); setState(103); return; }
+
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    async function loop() {
+      while (true) {
+        setState(0);
+        for (var i = 1; i <= command.length; i++) { setState(i); await wait(32); }
+        await wait(450);
+        setState(100);
+        await wait(900);
+        setState(101);
+        await wait(850);
+        setState(102);
+        await wait(600);
+        setState(103);
+        await wait(2600);
+        if (toastEl) toastEl.classList.remove('show');
+        await wait(1800);
+      }
+    }
+    loop();
+  })();
+
+  // Terminal slab: a command types itself, over and over
+  (function () {
+    var el = document.getElementById('termTyped');
+    if (!el) return;
+    var cmds = ['npm test', 'git log --oneline -5', 'claude "fix the flaky auth test"'];
+    if (reduced) { el.textContent = cmds[0]; return; }
+    function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+    (async function () {
+      var k = 0;
+      while (true) {
+        var c = cmds[k++ % cmds.length];
+        for (var i = 1; i <= c.length; i++) { el.textContent = c.slice(0, i); await wait(55); }
+        await wait(2200);
+        el.textContent = '';
+        await wait(500);
+      }
+    })();
+  })();
+</script>
+</body>
+</html>
