@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><script>if(["usechill.tech", "www.usechill.tech"].includes(location.hostname))location.replace("https://usechill.app"+location.pathname+location.search+location.hash)</script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Chill</title><link rel="icon" href="/assets/app-icon.png"><link rel="canonical" href="https://usechill.app/privacy">
+<link rel="preload" href="/assets/fonts/Inter-Medium.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Inter";font-weight:300;font-display:swap;src:url("/assets/fonts/Inter-Light.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:500;font-display:swap;src:url("/assets/fonts/Inter-Medium.woff2") format("woff2")}
+@font-face{font-family:"Inter";font-weight:600;font-display:swap;src:url("/assets/fonts/Inter-SemiBold.woff2") format("woff2")}
+:root{--navy:#2A2F3D;--text:#2A2F3D;--body:#3E4557;--muted:#5C6378;--link:#007C85;--line:rgba(42,47,61,.10);--panel:rgba(42,47,61,.06)}
+body{margin:0;background:#fff;color:var(--text);font:500 16px/1.65 "Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.bloom{position:fixed;left:-260px;top:-220px;width:760px;height:640px;z-index:0;pointer-events:none;mix-blend-mode:multiply}
+.bloom svg{width:100%;height:100%;overflow:visible}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:48px 24px 80px}
+h1{font-size:40px;line-height:1.1;letter-spacing:-.02em;font-weight:300;margin:0 0 10px}h2{font-size:24px;font-weight:600;letter-spacing:-.01em;margin:40px 0 10px}h3{font-size:17px;font-weight:600;margin:24px 0 6px}
+p,li{color:var(--body)}a{color:var(--link);text-decoration:none;text-decoration-color:#00F2FF}a:hover{text-decoration:underline;text-decoration-thickness:2px}
+code{background:var(--panel);padding:2px 6px;border-radius:6px;font:14px ui-monospace,SFMono-Regular,Menlo,monospace}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:32px;color:var(--muted);font-size:14px}.top img{width:28px;height:28px;border-radius:7px;box-shadow:0 0 0 1px var(--line)}.top a{color:var(--text);font-weight:600}
+footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;gap:16px;flex-wrap:wrap}footer a{color:var(--text)}
+</style></head><body>
+<div class="bloom" aria-hidden="true"><svg viewBox="0 0 760 640"><defs><filter id="ink" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="90" xChannelSelector="R" yChannelSelector="G" result="w"/><feGaussianBlur in="w" stdDeviation="28"/></filter></defs><g filter="url(#ink)"><ellipse cx="380" cy="300" rx="250" ry="180" fill="#FFCA00" opacity=".34"/><ellipse cx="470" cy="360" rx="180" ry="140" fill="#FF6732" opacity=".24" transform="rotate(-18 470 360)"/></g></svg></div>
+<main>
+<div class="top"><img src="/assets/app-icon.png" alt=""><a href="/">Chill</a> · <a href="/support">Support</a> · <a href="/privacy">Privacy</a></div>
+<h1>Privacy Policy</h1>
+<p><strong>Last updated: October 2026</strong></p>
+<p>Chill (the iPhone/iPad/Apple Watch app) and Chill Server (the companion Mac app) are built so that there is nothing for this policy to disclose beyond what's below — there is no Chill cloud, no account system, and no analytics. The one hosted piece is a notification relay, described below.</p>
+<h2>What we collect</h2>
+<p><strong>Nothing is stored.</strong> Neither app sends any data to us (the developer) or to any third party, with one narrow exception: if you allow notifications, alert text passes through our push relay on its way to Apple (see "Notifications"). There is no analytics SDK, no crash reporter, and no other third-party service built into either app.</p>
+<h2>What the apps actually do with data</h2>
+<ul>
+<li>The iPhone/iPad/Watch app connects <strong>only</strong> to the Mac you explicitly pair it with, over a direct, end-to-end encrypted connection (per-device keys; a relay, when one is needed to get through NAT, only ever forwards encrypted bytes and steps aside once a direct path is available). That Mac is yours. We never see this traffic, and it never passes through any server we operate (the notification relay below is the only exception, and it never carries this traffic).</li>
+<li>Your code, your agent transcripts, and your Claude Code / Codex API credentials stay on your own Mac. They are never uploaded to us, because there is nowhere for them to go — the app has no backend.</li>
+<li>Local preferences (things like whether approvals are shown, sound settings, which hub you last used) are stored only in the app's own local storage on your device, never transmitted anywhere.</li>
+</ul>
+<h2>Notifications</h2>
+<p>If you allow notifications, the app registers with Apple Push Notification service and gives the resulting device token to the Macs you pair with. When a reply is ready or an approval is waiting and you don't have that chat open, your Mac sends a short alert (a title such as "Claude needs approval · Fix login bug" and one line of text) to our push relay, which forwards it to Apple for delivery. The relay sees that alert text and your device token, forwards them, and keeps nothing: it has no database and does not log alert contents. It never sees your code, your transcripts, or your API credentials. You can turn notifications off in iOS Settings at any time, and self-hosters can point their Mac at their own relay instead of ours.</p>
+<h2>In-app purchase</h2>
+<p>The one-time "Unlock Chill" purchase is processed entirely by Apple through StoreKit. We never see your payment information — Apple's own privacy policy covers that transaction, not this one.</p>
+<p>To unlock every Mac you pair without re-purchasing, your device signs a small proof-of-purchase claim (which product you bought and when) locally and sends it to a Mac you've paired with, which verifies it offline. This claim contains no personal information beyond the fact of the purchase, and it is never sent to us — only between your own devices.</p>
+<h2>Children's privacy</h2>
+<p>The app is a developer tool, not directed at children, and collects nothing from anyone regardless of age.</p>
+<h2>Changes to this policy</h2>
+<p>If this ever changes — for example, if a future version adds an optional cloud feature — this page will be updated first, and the change will be reflected in that version's release notes.</p>
+<h2>Contact</h2>
+<p>Questions: open an issue at <a href="https://github.com/Jian130/usechill.tech/issues">github.com/Jian130/ai-studio/issues</a>.</p>
+<footer><span>© 2026 Chill</span><a href="/">usechill.app</a><a href="/support">Support</a><a href="/privacy">Privacy</a></footer>
+</main></body></html>
